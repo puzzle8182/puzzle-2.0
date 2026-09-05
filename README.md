@@ -39,8 +39,9 @@ infraestrutura da plataforma).
 
 Três schemas segregam fisicamente o que é corporativo do que é clínico:
 
-- **`corporate`** — empresas, contratos, colaboradores elegíveis, faturas.
-  Tudo que a empresa pode enxergar (dado administrativo/financeiro).
+- **`corporate`** — empresas, contratos, colaboradores elegíveis, convites
+  de colaborador, faturas. Tudo que a empresa pode enxergar (dado
+  administrativo/financeiro).
 - **`clinical`** — psicólogos, prontuário (notas de sessão, anamnese,
   hipóteses diagnósticas versionadas, intercorrências, objetivos
   terapêuticos, autorizações de suporte). **Nenhuma policy de RLS dá
@@ -88,6 +89,17 @@ evitar que dois pedidos simultâneos colidam na API do Daily.co. A chave
 da API fica no Vault (`daily_api_key`), nunca em código ou variável de
 ambiente do frontend.
 
+### Convite de colaborador: vínculo automático no cadastro
+
+Quando o RH adiciona um e-mail que ainda não tem conta,
+`corporate.adicionar_colaborador_por_email()` registra um convite pendente
+em `corporate.convites_colaborador` em vez de falhar. O trigger de
+cadastro (`public.handle_new_user()`) verifica, para todo novo usuário com
+papel `colaborador`, se existe um convite pendente com o mesmo e-mail — se
+sim, vincula automaticamente à empresa (`colaboradores_elegiveis`) e marca
+o convite como aceito. Não depende de nenhuma ação manual após o
+cadastro.
+
 ## Estado atual (testado de ponta a ponta)
 
 ✅ Schema completo aplicado via migrations versionadas (`supabase/migrations/`)
@@ -108,6 +120,12 @@ ambiente do frontend.
 ✅ Empresa: cadastro da própria empresa (nome, CNPJ, modalidade de
   financiamento), gestão de colaboradores elegíveis (adicionar por e-mail,
   listar com status)
+✅ Convite de colaborador sem conta prévia: RH pode convidar por e-mail
+  mesmo antes do cadastro; vínculo automático no momento em que a pessoa
+  se cadastra com esse e-mail (ver seção acima); RH vê a lista de convites
+  pendentes separada dos colaboradores já vinculados. Falta apenas o envio
+  ativo de e-mail avisando a pessoa (depende do domínio/provedor
+  transacional — ver gaps).
 ✅ Agenda unificada (`/agendamentos`): a mesma página serve colaborador e
   psicólogo, filtrando por papel — antes só existia a visão do colaborador
 ✅ Prontuário clínico: psicólogo vê lista de pacientes (colaboradores com
@@ -197,6 +215,17 @@ original revelou padrões a evitar:
    `psicologo_id`/`colaborador_profile_id`, mesmo padrão já usado no
    resto do 2.0.
 
+### Lição de processo: README pode ficar desatualizado em relação ao código
+
+Duas vezes nesta fase do projeto, o README descreveu como "gap" uma
+funcionalidade que já estava implementada e correta no banco (o convite
+de colaborador com vínculo automático via trigger é a segunda vez — a
+primeira foi um repositório com nome desatualizado). A causa provável é
+trabalho feito em sessões anteriores sem atualizar a documentação no
+mesmo commit. Prática adotada a partir de agora: **antes de assumir que
+algo é um gap, verificar o schema/funções reais no banco**, não confiar
+apenas na lista de pendências do README.
+
 ## O que ainda falta (gaps conhecidos)
 
 - **Videochamada — forma de pagamento no Daily.co:** o backend está
@@ -212,15 +241,13 @@ original revelou padrões a evitar:
   `valor_colaborador`, `gateway_transaction_id` em
   `core.pagamentos_sessao`) já existe, falta a integração real. Também
   aguardando CNPJ.
-- **Confirmação de e-mail:** já reativada no Supabase Auth. Falta
-  configurar um provedor de e-mail transacional (o padrão do Supabase é
-  só para testes, com limite de envio baixo) — o 1.0 já validou esse
-  fluxo com Resend, mas depende do mesmo domínio próprio mencionado acima
-  para verificação de envio.
-- **Convite de colaborador antes do cadastro:** hoje o RH só consegue
-  adicionar um colaborador que já existe na plataforma (com conta criada
-  e papel "colaborador"). Não existe fluxo de convite por e-mail para
-  quem ainda não tem conta.
+- **E-mail transacional (confirmação de cadastro e convite de
+  colaborador):** confirmação de e-mail já reativada no Supabase Auth,
+  mas ainda no SMTP padrão (limite de envio baixo, não recomendado para
+  produção). Falta configurar um provedor transacional — o 1.0 já validou
+  esse fluxo com Resend — o que depende do domínio próprio mencionado
+  acima para verificação de envio. Sem isso, tanto a confirmação de
+  cadastro quanto o aviso ativo de convite de colaborador ficam limitados.
 - **Indicadores da empresa no frontend:** a função
   `corporate.get_indicadores_empresa()` existe e tem proteção de grupo
   mínimo, mas ainda não tem tela no frontend (`/indicadores` na sidebar
