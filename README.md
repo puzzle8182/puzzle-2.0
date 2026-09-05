@@ -140,6 +140,12 @@ cadastro.
 ✅ Página `/financeiro` do psicólogo: extrato de pagamentos por sessão
   (`core.pagamentos_sessao`) com status (pago/pendente/falhou/estornado) e
   status da assinatura da plataforma
+✅ Página `/indicadores` da empresa: 4 cards agregados (colaboradores
+  elegíveis, colaboradores ativos, sessões realizadas no mês, valor total
+  financiado) + taxa de continuidade, todos via
+  `corporate.get_indicadores_empresa()`. Quando o grupo de colaboradores
+  com sessão no mês é menor que 5, a tela mostra explicação em vez de
+  esconder o card ou quebrar (a função retorna `null`, não um erro)
 ✅ Verificação de documentação: psicólogo envia comprovante do CRP
   (upload para Supabase Storage, bucket privado); responsável técnico
   (papel `admin_plataforma`) aprova ou rejeita antes do perfil aparecer
@@ -264,11 +270,6 @@ padrão visual já aplicado em uma página vizinha do mesmo grupo**
   esse fluxo com Resend — o que depende do domínio próprio mencionado
   acima para verificação de envio. Sem isso, tanto a confirmação de
   cadastro quanto o aviso ativo de convite de colaborador ficam limitados.
-- **Indicadores da empresa no frontend:** a função
-  `corporate.get_indicadores_empresa()` existe e tem proteção de grupo
-  mínimo, mas ainda não tem tela no frontend (`/indicadores` na sidebar
-  ainda não foi implementada). Estatísticas de fluência do tratamento
-  (sem dado clínico sensível) — próximo item da fila.
 - **Criação de conta `admin_plataforma` é manual:** não existe fluxo de
   convite seguro — hoje a pessoa se cadastra com qualquer papel e depois
   alguém com acesso ao banco roda um `UPDATE` no SQL Editor pra promover
