@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { Icon } from '@/components/icon'
 
 async function aguardarResultado(
   supabase: ReturnType<typeof createClient>,
@@ -90,14 +91,15 @@ export default function SalaVideoPage() {
   }, [params.agendamentoId, router, supabase])
 
   return (
-    <div className="flex h-screen flex-col bg-[#1A2332]">
-      <div className="flex items-center justify-between px-5 py-3 bg-[#0f1622]">
-        <span className="text-sm font-medium text-white">Sessão de vídeo</span>
+    <div className="flex h-screen flex-col bg-ink">
+      <div className="flex items-center justify-between px-5 py-3 bg-pine-dark">
+        <span className="text-sm font-medium text-paper">Sessão de vídeo</span>
         <button
           onClick={() => router.push('/agendamentos')}
-          className="text-xs text-[#9ca8b8] hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-xs text-paper/60 hover:text-paper transition-colors"
         >
-          ← Sair da sessão
+          <Icon name="arrow-right" width={12} height={12} className="rotate-180" />
+          Sair da sessão
         </button>
       </div>
 
@@ -109,17 +111,20 @@ export default function SalaVideoPage() {
             className="h-full w-full border-0"
           />
         ) : erro ? (
-          <div className="text-center px-6">
-            <p className="text-red-400 text-sm">⚠️ {erro}</p>
+          <div className="max-w-sm text-center px-6">
+            <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
+              <Icon name="shield" width={18} height={18} />
+            </span>
+            <p className="text-red-400 text-sm leading-6">{erro}</p>
             <button
               onClick={() => router.push('/agendamentos')}
-              className="inline-block mt-4 rounded-lg bg-[#2D4A6B] px-5 py-2.5 text-sm font-medium text-white"
+              className="inline-block mt-5 rounded-lg bg-pine px-5 py-2.5 text-sm font-medium text-paper hover:bg-pine-dark transition-colors"
             >
               Voltar
             </button>
           </div>
         ) : (
-          <div className="text-center text-[#9ca8b8]">
+          <div className="text-center text-paper/60">
             <div className="h-8 w-8 mx-auto mb-4 rounded-full border-[3px] border-white/15 border-t-sage animate-spin" />
             <p>{status}</p>
           </div>

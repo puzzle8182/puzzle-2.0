@@ -226,6 +226,22 @@ mesmo commit. Prática adotada a partir de agora: **antes de assumir que
 algo é um gap, verificar o schema/funções reais no banco**, não confiar
 apenas na lista de pendências do README.
 
+### Lição de processo: feature nova pode reverter padrão visual sem querer
+
+Ao adicionar a Anamnese em `prontuarios/[colaboradorId]`, a página inteira
+foi reescrita e voltou ao estilo anterior ao redesign (cards `rounded-xl`
+sem ícone, badges de status em texto plano), perdendo o padrão visual
+(`rounded-2xl` + quadrado de ícone tintado + pill colorida por status)
+aplicado ao resto do app. O mesmo aconteceu em `sala-video/[agendamentoId]`,
+criada com as cores hexadecimais da 1.0 direto no código
+(`#1A2332`, `#0f1622`, `#2D4A6B`, `#9ca8b8`) em vez dos tokens do
+`globals.css` (`ink`, `pine-dark`, `pine`, `paper`). As duas foram
+corrigidas para seguir o padrão: cards com ícone, status como pill
+colorida, e cores sempre via token, nunca hex direto. **Prática adotada:
+ao adicionar uma tela ou reescrever uma existente, usar como referência o
+padrão visual já aplicado em uma página vizinha do mesmo grupo**
+(`pacientes/`, `prontuarios/`, `financeiro/` etc.), não recomeçar do zero.
+
 ## O que ainda falta (gaps conhecidos)
 
 - **Videochamada — forma de pagamento no Daily.co:** o backend está
