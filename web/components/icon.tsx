@@ -108,6 +108,13 @@ export function Icon({
           <path d="M4 12h16M13 5l7 7-7 7" />
         </svg>
       )
+    case 'clock':
+      return (
+        <svg {...base} {...props}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5V12l3 2" />
+        </svg>
+      )
     case 'building':
       return (
         <svg {...base} {...props}>
