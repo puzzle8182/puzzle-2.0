@@ -167,6 +167,16 @@ cadastro.
   (upload para Supabase Storage, bucket privado); responsável técnico
   (papel `admin_plataforma`) aprova ou rejeita antes do perfil aparecer
   na busca — separado do status de assinatura (financeiro)
+✅ Landing page com navegação por papel: o menu do topo tem um link
+  dedicado para cada lado do ecossistema (`/para-empresas`,
+  `/para-colaboradores`, `/para-psicologos`), substituindo o antigo
+  link único "Entrar" (login continua acessível pelo rodapé). Cada
+  página aprofunda o que os cards "Para quem" da home só resumem —
+  passo a passo específico, benefícios e FAQ — e o CTA de cada uma leva
+  para `/cadastro?perfil=...`, que já vem com o papel certo pré-marcado
+  no formulário. Header e footer da home foram extraídos para
+  `components/site-header.tsx` e `components/site-footer.tsx`,
+  reaproveitados nas quatro páginas
 🟡 Videochamada via Daily.co: backend completo e testado de ponta a ponta
   (criação de sala real, geração de token, `<iframe>` carregando a sala) —
   bloqueado apenas pela exigência do Daily.co de forma de pagamento
@@ -205,6 +215,17 @@ Vale documentar porque são armadilhas comuns de RLS no Postgres/Supabase:
    `/agendamentos` passou a servir os dois papéis — o psicólogo nunca
    conseguia chegar na própria agenda pelo menu lateral. Corrigido
    apontando para a rota certa.
+7. **`next build` quebrando por falta de tipos gerados do banco:** sem
+   `database.types.ts` (depende de `supabase db pull`, bloqueado até
+   instalar o Docker Desktop), os clients Supabase são criados sem o
+   generic `Database`, e uma chamada `.schema(...).rpc(...)` é inferida
+   como `{}` em vez de `any` — qualquer acesso a coluna do retorno falha
+   no type check, mesmo com o código correto em runtime. Aconteceu em
+   `/indicadores` com `get_indicadores_empresa()`. Corrigido tipando
+   manualmente o retorno da função (`type IndicadoresEmpresa = {...}`,
+   com as colunas exatas do `returns table (...)` da migration) e
+   fazendo um cast explícito no dado antes de usar. Enquanto o `db pull`
+   não roda, qualquer chamada RPC nova precisa do mesmo tratamento.
 
 ### Lições da portabilidade do protótipo 1.0 (`micaelsonnen/Puzzle`)
 

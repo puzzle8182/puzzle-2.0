@@ -146,10 +146,37 @@ cadastro.
   `corporate.get_indicadores_empresa()`. Quando o grupo de colaboradores
   com sessão no mês é menor que 5, a tela mostra explicação em vez de
   esconder o card ou quebrar (a função retorna `null`, não um erro)
+✅ Página `/faturas` da empresa: histórico de faturas do contrato
+  (`corporate.faturas`, via `corporate.contratos`), com valor mensal e
+  status por competência. Sem contrato ativo ainda, mostra aviso em vez
+  de lista vazia sem contexto
+✅ Página `/admin/empresas`: lista todas as empresas cadastradas, com
+  contagem de colaboradores por empresa
+✅ Convite seguro para `admin_plataforma` (`/admin/config`): um admin
+  existente convida por e-mail (`public.convidar_admin_plataforma()`); a
+  pessoa não precisa ter conta ainda — quando se cadastra com esse
+  e-mail, o trigger `handle_new_user()` promove automaticamente,
+  ignorando o papel escolhido no formulário, e registra a promoção em
+  `core.audit_log` com quem convidou. Substitui o `UPDATE` manual no SQL
+  Editor
+✅ Linha do tempo no prontuário: anamnese, hipóteses diagnósticas,
+  intercorrências, notas de sessão e objetivos terapêuticos aparecem
+  juntos numa lista cronológica única no topo da página do paciente,
+  além de cada um continuar com sua própria seção editável logo abaixo
 ✅ Verificação de documentação: psicólogo envia comprovante do CRP
   (upload para Supabase Storage, bucket privado); responsável técnico
   (papel `admin_plataforma`) aprova ou rejeita antes do perfil aparecer
   na busca — separado do status de assinatura (financeiro)
+✅ Landing page com navegação por papel: o menu do topo tem um link
+  dedicado para cada lado do ecossistema (`/para-empresas`,
+  `/para-colaboradores`, `/para-psicologos`), substituindo o antigo
+  link único "Entrar" (login continua acessível pelo rodapé). Cada
+  página aprofunda o que os cards "Para quem" da home só resumem —
+  passo a passo específico, benefícios e FAQ — e o CTA de cada uma leva
+  para `/cadastro?perfil=...`, que já vem com o papel certo pré-marcado
+  no formulário. Header e footer da home foram extraídos para
+  `components/site-header.tsx` e `components/site-footer.tsx`,
+  reaproveitados nas quatro páginas
 🟡 Videochamada via Daily.co: backend completo e testado de ponta a ponta
   (criação de sala real, geração de token, `<iframe>` carregando a sala) —
   bloqueado apenas pela exigência do Daily.co de forma de pagamento
@@ -188,6 +215,17 @@ Vale documentar porque são armadilhas comuns de RLS no Postgres/Supabase:
    `/agendamentos` passou a servir os dois papéis — o psicólogo nunca
    conseguia chegar na própria agenda pelo menu lateral. Corrigido
    apontando para a rota certa.
+7. **`next build` quebrando por falta de tipos gerados do banco:** sem
+   `database.types.ts` (depende de `supabase db pull`, bloqueado até
+   instalar o Docker Desktop), os clients Supabase são criados sem o
+   generic `Database`, e uma chamada `.schema(...).rpc(...)` é inferida
+   como `{}` em vez de `any` — qualquer acesso a coluna do retorno falha
+   no type check, mesmo com o código correto em runtime. Aconteceu em
+   `/indicadores` com `get_indicadores_empresa()`. Corrigido tipando
+   manualmente o retorno da função (`type IndicadoresEmpresa = {...}`,
+   com as colunas exatas do `returns table (...)` da migration) e
+   fazendo um cast explícito no dado antes de usar. Enquanto o `db pull`
+   não roda, qualquer chamada RPC nova precisa do mesmo tratamento.
 
 ### Lições da portabilidade do protótipo 1.0 (`micaelsonnen/Puzzle`)
 
@@ -248,6 +286,28 @@ ao adicionar uma tela ou reescrever uma existente, usar como referência o
 padrão visual já aplicado em uma página vizinha do mesmo grupo**
 (`pacientes/`, `prontuarios/`, `financeiro/` etc.), não recomeçar do zero.
 
+### ⚠️ Pendência crítica: migration do convite de colaborador não está no repo
+
+O convite de colaborador sem conta prévia (linha "✅" acima) está descrito
+no README e o frontend (`app/actions/empresa.ts`, tela `/colaboradores`)
+já espera esse comportamento (`corporate.convites_colaborador`, retorno
+`'convite_criado'`, vínculo automático no `handle_new_user()`). **Mas
+nenhum arquivo em `supabase/migrations/` cria essa tabela ou essa lógica**
+— a migration `20260830010000_onboarding_empresa.sql` só tem a versão
+antiga de `adicionar_colaborador_por_email()`, sem o branch de convite, e
+`handle_new_user()` na migration `20260829000001` não tem nenhum vínculo
+automático. Isso só funciona hoje porque foi aplicado direto no banco
+remoto (SQL Editor) em algum momento, sem virar um arquivo de migration
+commitado. **Risco real:** se o schema for recriado do zero (ambiente
+novo, disaster recovery, ou `supabase db reset`), essa funcionalidade
+some silenciosamente e a tela `/colaboradores` passa a chamar uma tabela
+que não existe. Ação recomendada: rodar `supabase db pull` (ou exportar
+o schema atual do projeto Supabase) pra gerar a migration que falta,
+revisar e commitar. A migration nova de convite de `admin_plataforma`
+(`20260905000001_convite_admin_plataforma.sql`) foi desenhada seguindo o
+mesmo espírito dessa funcionalidade, então serve de referência de como a
+de colaborador provavelmente deveria ter ficado.
+
 ## O que ainda falta (gaps conhecidos)
 
 - **Videochamada — forma de pagamento no Daily.co:** o backend está
@@ -280,6 +340,11 @@ padrão visual já aplicado em uma página vizinha do mesmo grupo**
   existem, mas ainda não há uma visualização consolidada em ordem
   cronológica — hoje cada tipo de registro aparece em sua própria seção
   na página do prontuário.
+- **`/admin/config` cobre só convite de admin, não outras configurações:**
+  a página existe e resolve o convite seguro de `admin_plataforma`, mas o
+  nome sugere um escopo maior (ex: parâmetros gerais da plataforma) que
+  ainda não existe. Avaliar se vale renomear o link na sidebar ou
+  expandir a página conforme surgirem outras configurações.
 
 ## Questões regulatórias em aberto (LGPD/CFP)
 
