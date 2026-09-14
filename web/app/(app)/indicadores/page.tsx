@@ -2,6 +2,19 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { Icon } from '@/components/icon'
 
+// O projeto ainda não tem os tipos gerados do banco (`supabase gen types`
+// depende do `db pull`, pendente por causa do Docker). Sem isso, o Supabase
+// client não sabe o formato de retorno de uma função RPC, então tipamos
+// aqui manualmente com as colunas exatas da função `get_indicadores_empresa`
+// (ver supabase/migrations/20260829000005_indicadores_agregados.sql).
+type IndicadoresEmpresa = {
+  colaboradores_elegiveis: number
+  colaboradores_ativos: number
+  sessoes_realizadas: number
+  valor_total_financiado: number
+  taxa_continuidade: number | null
+}
+
 function formatarMoeda(valor: number) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
@@ -54,7 +67,7 @@ export default async function IndicadoresPage() {
     })
     .single()
 
-  const dados = error ? null : indicadores
+  const dados = error ? null : (indicadores as IndicadoresEmpresa | null)
 
   const cards = [
     {
