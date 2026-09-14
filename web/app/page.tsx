@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { BrandMark } from '@/components/brand-mark'
 import { Icon } from '@/components/icon'
 import { HeroPhoto } from '@/components/hero-photo'
+import { SiteHeader } from '@/components/site-header'
+import { SiteFooter } from '@/components/site-footer'
 
 const TAG = 'mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-sage'
 
@@ -56,6 +57,7 @@ const PARA_QUEM = [
   {
     icon: 'building',
     tint: 'bg-amber/10',
+    href: '/para-empresas',
     titulo: 'Para empresas',
     linha: 'Um benefício de saúde mental sem montar a operação sozinha.',
     texto:
@@ -65,6 +67,7 @@ const PARA_QUEM = [
   {
     icon: 'users',
     tint: 'bg-sage/20',
+    href: '/para-colaboradores',
     titulo: 'Para colaboradores',
     linha: 'Você escolhe o profissional. A empresa participa do custo.',
     texto:
@@ -74,6 +77,7 @@ const PARA_QUEM = [
   {
     icon: 'brain',
     tint: 'bg-pine/10',
+    href: '/para-psicologos',
     titulo: 'Para psicólogos',
     linha: 'Presença profissional, demanda corporativa e ferramentas para a prática.',
     texto:
@@ -98,36 +102,7 @@ const PAPEIS = [
 export default function LandingPage() {
   return (
     <div className="bg-paper text-ink">
-      {/* nav */}
-      <header className="sticky top-0 z-40 border-b border-border-soft bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <BrandMark size={28} tone="dark" />
-            <span className="h-6 w-px bg-border-soft" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/puzzle-logo.webp" alt="Puzzle" className="h-7 w-auto" />
-            <span className="font-display text-lg text-ink">Plataforma Puzzle</span>
-          </Link>
-
-          <nav className="hidden items-center gap-7 text-sm text-ink-soft md:flex">
-            <a href="#como-funciona" className="hover:text-ink transition-colors">Como funciona</a>
-            <a href="#para-quem" className="hover:text-ink transition-colors">Para quem</a>
-            <a href="#privacidade" className="hover:text-ink transition-colors">Privacidade</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden text-sm font-medium text-ink-soft hover:text-ink transition-colors sm:block">
-              Entrar
-            </Link>
-            <Link
-              href="/cadastro"
-              className="rounded-full bg-pine px-4 py-2 text-sm font-medium text-paper hover:bg-pine-dark transition-colors"
-            >
-              Cadastre-se
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main>
         {/* hero */}
@@ -300,6 +275,13 @@ export default function LandingPage() {
                         </li>
                       ))}
                     </ul>
+                    <Link
+                      href={item.href}
+                      className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-pine hover:underline"
+                    >
+                      Saiba mais
+                      <Icon name="arrow-right" width={14} height={14} />
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -412,23 +394,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-ink text-paper">
-        <div className="mx-auto max-w-6xl px-6 py-14 text-center">
-          <div className="mb-3 flex items-center justify-center gap-3">
-            <BrandMark size={24} tone="light" />
-            <span className="h-5 w-px bg-paper/20" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/puzzle-logo.webp" alt="Puzzle" className="h-6 w-auto" />
-            <span className="font-display text-lg">Plataforma Puzzle</span>
-          </div>
-          <p className="text-sm text-paper/50">Autonomia clínica sempre com o psicólogo.</p>
-          <p className="text-sm text-paper/50">Conformidade com a LGPD e as normas do CFP/CRP.</p>
-          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-paper/70">
-            <Link href="/login" className="hover:text-paper transition-colors">Entrar</Link>
-            <Link href="/cadastro" className="hover:text-paper transition-colors">Cadastre-se</Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { BrandMark } from '@/components/brand-mark'
 
@@ -26,14 +26,21 @@ const ROLE_OPTIONS: { value: Role; label: string; hint: string }[] = [
   },
 ]
 
-export default function CadastroPage() {
+function isRole(value: string | null): value is Role {
+  return ROLE_OPTIONS.some((opt) => opt.value === value)
+}
+
+function CadastroForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const perfilParam = searchParams.get('perfil')
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<Role | null>(null)
+  const [role, setRole] = useState<Role | null>(isRole(perfilParam) ? perfilParam : null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [confirmEmailSent, setConfirmEmailSent] = useState(false)
@@ -190,5 +197,13 @@ export default function CadastroPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={null}>
+      <CadastroForm />
+    </Suspense>
   )
 }
